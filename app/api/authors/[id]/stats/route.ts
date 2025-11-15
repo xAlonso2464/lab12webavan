@@ -1,13 +1,9 @@
 // app/api/authors/[id]/stats/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-type Params = {
-  params: { id: string };
-};
-
-export async function GET(_req: Request, { params }: Params) {
-  const { id } = params;
+export async function GET(_req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
     const author = await prisma.author.findUnique({
@@ -40,7 +36,6 @@ export async function GET(_req: Request, { params }: Params) {
 
     const totalBooks = books.length;
 
-    // Libros con año
     const booksWithYear = books.filter(
       (b) => b.publishedYear !== null && b.publishedYear !== undefined
     );
@@ -62,7 +57,6 @@ export async function GET(_req: Request, { params }: Params) {
         }
       : null;
 
-    // Páginas
     const booksWithPages = books.filter(
       (b) => b.pages !== null && b.pages !== undefined
     );
@@ -94,7 +88,6 @@ export async function GET(_req: Request, { params }: Params) {
       };
     }
 
-    // Géneros únicos
     const genres = Array.from(
       new Set(
         books

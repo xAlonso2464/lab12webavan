@@ -1,14 +1,10 @@
 // app/api/books/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-type Params = {
-  params: { id: string };
-};
-
 // GET /api/books/:id
-export async function GET(_req: Request, { params }: Params) {
-  const { id } = params;
+export async function GET(_req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
     const book = await prisma.book.findUnique({
@@ -34,8 +30,8 @@ export async function GET(_req: Request, { params }: Params) {
 }
 
 // PUT /api/books/:id
-export async function PUT(req: Request, { params }: Params) {
-  const { id } = params;
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
     const body = await req.json();
@@ -81,11 +77,13 @@ export async function PUT(req: Request, { params }: Params) {
 }
 
 // DELETE /api/books/:id
-export async function DELETE(_req: Request, { params }: Params) {
-  const { id } = params;
+export async function DELETE(_req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
-    await prisma.book.delete({ where: { id } });
+    await prisma.book.delete({
+      where: { id },
+    });
 
     return NextResponse.json(
       { message: 'Libro eliminado correctamente' },

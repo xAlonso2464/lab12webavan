@@ -1,14 +1,10 @@
 // app/api/authors/[id]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-type Params = {
-  params: { id: string };
-};
-
 // GET /api/authors/:id
-export async function GET(_req: Request, { params }: Params) {
-  const { id } = params;
+export async function GET(_req: NextRequest, context: any) {
+  const { id } = await context.params; // puede ser Promise<{ id: string }>
 
   try {
     const author = await prisma.author.findUnique({
@@ -33,17 +29,30 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-// PUT /api/authors/:id
-export async function PUT(req: Request, { params }: Params) {
-  const { id } = params;
+// PUT /api/authors/:id - actualizar autor
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
     const body = await req.json();
     const { name, email, nationality, birthYear, bio } = body;
 
+    if (!name || !email) {
+      return NextResponse.json(
+        { message: 'name y email son obligatorios' },
+        { status: 400 }
+      );
+    }
+
     const author = await prisma.author.update({
       where: { id },
-      data: { name, email, nationality, birthYear, bio },
+      data: {
+        name,
+        email,
+        nationality: nationality ?? null,
+        birthYear: birthYear ?? null,
+        bio: bio ?? null,
+      },
     });
 
     return NextResponse.json(author);
@@ -57,6 +66,13 @@ export async function PUT(req: Request, { params }: Params) {
       );
     }
 
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { message: 'El email ya está registrado' },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { message: 'Error al actualizar autor' },
       { status: 500 }
@@ -65,11 +81,13 @@ export async function PUT(req: Request, { params }: Params) {
 }
 
 // DELETE /api/authors/:id
-export async function DELETE(_req: Request, { params }: Params) {
-  const { id } = params;
+export async function DELETE(_req: NextRequest, context: any) {
+  const { id } = await context.params;
 
   try {
-    await prisma.author.delete({ where: { id } });
+    await prisma.author.delete({
+      where: { id },
+    });
 
     return NextResponse.json(
       { message: 'Autor eliminado correctamente' },
