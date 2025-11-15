@@ -1,0 +1,8 @@
+// prisma.config.ts
+import { defineConfig } from '@prisma/config';
+
+export default defineConfig({
+  // Usa el schema por defecto en ./prisma/schema.prisma
+  schema: './prisma/schema.prisma',
+  // No definimos nada de env aquí, Prisma usará .env automáticamente
+});
